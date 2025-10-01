@@ -1,17 +1,18 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+// ===== post.model.js (ESM compatible) =====
+import mongoose from 'mongoose';
 
-const post = new Schema({
+const { Schema } = mongoose;
+
+const postSchema = new Schema({
   userId: { type: String, required: true },
-  title : { type : String, required: true},
-  description: {type: String , required: true},
-  likes: {type: Number , default: 0},
-  comments : [ { type : String } ]
- },
-  {
-  timestamps: true,
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  likes: { type: Number, default: 0 },
+  comments: [{ type: String }]
+}, {
+  timestamps: true
 });
 
-const Post = mongoose.model('Post', post);
+const Post = mongoose.model('Post', postSchema);
 
-module.exports = Post;
+export default Post; // ✅ Default export for ESM

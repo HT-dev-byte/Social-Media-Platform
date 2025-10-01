@@ -1,99 +1,77 @@
-const express = require("express");
-const Register = require('../models/register.model.js')
+import express from "express";
+import Register from "../models/register.model.js";
+import { validationResult, param } from "express-validator";
+import fetchuser from "../middleware/Fetchuser.js";
+
 const router = express.Router();
-const { body, validationResult } = require("express-validator");
-const { ValidatorsImpl } = require("express-validator/src/chain");
-const res = require("express/lib/response");
-const fetchuser = require("../middleware/Fetchuser.js");
 
-
+// Follow a user
 router.post(
-  "/follow/:id", fetchuser ,
-  //validating input got by server, if input is in correct format, then user is created.
-  //if any error is there, the return bas request and all the errrors.
+  "/follow/:id",
+  fetchuser,
+  param("id").isMongoId().withMessage("Invalid user ID"),
   async (req, res) => {
-    let success = false;
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({success:false, errors: errors.array() });
-    }
-    try {
-      // checking if user with same email already exists or not
-    //   console.log(req.params)
-      const userId=req.params.id
-      const myId=req.user.id
-    //   console.log(req.params)
-    //   console.log("hey")
-      let user = await Register.find({_id : userId});
-      let myself=await Register.find({_id : myId});
-      if (!user) {
-        return res
-          .status(400)
-          .json({success:false, error: "Sorry, No User with this id" });
-      }
-      
-        
-      user[0].followers+=1;
-      myself[0].followings+=1;
-      user[0].save(err=>{
-        return err;
-      }) 
-      myself[0].save(err=>{
-        return err;
-      })
+    if (!errors.isEmpty())
+      return res.status(400).json({ success: false, errors: errors.array() });
 
-      res.status(200).json({success: true , user , myself})
+    try {
+      const userId = req.params.id;
+      const myId = req.user.id;
+
+      const user = await Register.findById(userId);
+      const myself = await Register.findById(myId);
+
+      if (!user || !myself)
+        return res.status(500).json({ success: false, error: "User not found" });
+
+      user.followers += 1;
+      myself.followings += 1;
+
+      await user.save();
+      await myself.save();
+
+      res.status(200).json({ success: true, user, myself });
     } catch (error) {
-      console.log(error);
-      res.status(500).send("Internal Server Error!!!");
+      console.error(error);
+      res.status(500).send("Internal Server Error");
     }
   }
 );
 
-
+// Unfollow a user
 router.post(
-    "/unfollow/:id", fetchuser ,
-    //validating input got by server, if input is in correct format, then user is created.
-    //if any error is there, the return bas request and all the errrors.
-    async (req, res) => {
-      let success = false;
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({success:false, errors: errors.array() });
-      }
-      try {
-        // checking if user with same email already exists or not
-      //   console.log(req.params)
-        const userId=req.params.id
-        const myId=req.user.id
-      //   console.log(req.params)
-      //   console.log("hey")
-        let user = await Register.find({_id : userId});
-        let myself=await Register.find({_id : myId});
-        if (!user) {
-          return res
-            .status(400)
-            .json({success:false, error: "Sorry, No User with this id" });
-        }
-        
-          
-        user[0].followers-=1;
-        myself[0].followings-=1;
-        user[0].save(err=>{
-          return err
-        }) 
-        myself[0].save(err=>{
-          return err
-        })
-  
-        res.status(200).json({success: true , user , myself})
-      } catch (error) {
-        console.log(error);
-        res.status(500).send("Internal Server Error!!!");
-      }
-    }
-  );
-  
+  "/unfollow/:id",
+  fetchuser,
+  param("id").isMongoId().withMessage("Invalid user ID"),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json({ success: false, errors: errors.array() });
 
-  
-module.exports = router;
+    try {
+      const userId = req.params.id;
+      const myId = req.user.id;
+
+      const user = await Register.findById(userId);
+      const myself = await Register.findById(myId);
+
+      if (!user || !myself)
+        return res.status(500).json({ success: false, error: "User not found" });
+
+      user.followers = Math.max(0, user.followers - 1);
+      myself.followings = Math.max(0, myself.followings - 1);
+
+      await user.save();
+      await myself.save();
+
+      res.status(200).json({ success: true, user, myself });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+export default router;
+

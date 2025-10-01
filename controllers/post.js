@@ -1,41 +1,32 @@
-const express = require("express");
-const Post = require('../models/post.model.js')
-const router = express.Router();
-const { body, validationResult } = require("express-validator");
-const { ValidatorsImpl } = require("express-validator/src/chain");
-const res = require("express/lib/response");
-const fetchuser = require("../middleware/Fetchuser");
+import express from "express";
+import Post from "../models/post.model.js";
+import { body, validationResult } from "express-validator";
+import fetchuser from "../middleware/Fetchuser.js";
 
+const router = express.Router();
+
+// Create a new post
 router.post(
   "/",
   fetchuser,
   [],
- 
   async (req, res) => {
-    let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({success:false, errors: errors.array() });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
-    try { 
-     
-     
-     const {title , description} = req.body ;
-     //const loginId = req.user.email;
-     const userId = req.user.id;
-     console.log(userId)
+    try {
+      const { title, description } = req.body;
+      const userId = req.user.id;
+      console.log(userId);
 
-  
-      let newPost = await Post.create({
+      const newPost = await Post.create({
         userId,
         title,
         description,
       });
-   
-   
-   
-      res.json({success:true , newPost: newPost});
-    
+
+      res.json({ success: true, newPost });
     } catch (error) {
       console.log(error);
       res.status(500).send("Internal Server Error!!!");
@@ -43,65 +34,28 @@ router.post(
   }
 );
 
-
-// router.get(
-//   "/:id",
-//   fetchuser,
-//   [],
- 
-//   async (req, res) => {
-//     let success = false;
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       return res.status(400).json({success:false, errors: errors.array() });
-//     }
-//     try { 
-     
-     
-//      const postId = req.params.id;
-//      console.log(postId)
-
-//      const post = await Post.findById(postId)
-
-//       res.json({success:true , post});
-//     // res.json({success:true})
-//     } catch (error) {
-//       console.log(error);
-//       res.status(500).send("Internal Server Error!!!");
-//     }
-//   }
-// );
-
+// Delete a post by ID
 router.delete(
   "/:id",
   fetchuser,
   [],
- 
   async (req, res) => {
-    let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({success:false, errors: errors.array() });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
-    try { 
-     
-     
-     const postId = req.params.id;
-     const userId= req.user.id
-    //  console.log(postId) 
-     const post = await Post.findOne({_id : postId , userdId : userId });
-     if(!post){
-        msg = " No Such post available"
-        res.status(500).json({msg})
-        return 
-     }
-     
-     post.delete(err=>{
-      return err
-     })
+    try {
+      const postId = req.params.id;
+      const userId = req.user.id;
 
-     res.json({success:true , msg : "post deleted successfully" });
-  
+      const post = await Post.findOne({ _id: postId, userId });
+      if (!post) {
+        return res.status(500).json({ msg: "No such post available" });
+      }
+
+      await post.deleteOne();
+
+      res.json({ success: true, msg: "Post deleted successfully" });
     } catch (error) {
       console.log(error);
       res.status(500).send("Internal Server Error!!!");
@@ -109,37 +63,30 @@ router.delete(
   }
 );
 
+// Get a post by ID
 router.get(
   "/:id",
   fetchuser,
   [],
- 
   async (req, res) => {
-    let success = false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({success:false, errors: errors.array() });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
-    try { 
-     
-     
-     const postId = req.params.id;
-    //  console.log(postId) 
-     const post = await Post.findOne({_id : postId});
-     if(!post){
-        msg = " No Such post available"
-        res.status(500).json({msg})
-        return 
-     }
-     console.log(post)
+    try {
+      const postId = req.params.id;
+      const post = await Post.findOne({ _id: postId });
 
-     const obj = {
-        likes : post.likes,
-        comments : post.comments
-     } 
+      if (!post) {
+        return res.status(500).json({ msg: "No such post available" });
+      }
 
-     res.json({success:true , post : obj });
-    
+      const obj = {
+        likes: post.likes,
+        comments: post.comments,
+      };
+
+      return res.status(200).json({ success: true, post: obj });
     } catch (error) {
       console.log(error);
       res.status(500).send("Internal Server Error!!!");
@@ -147,5 +94,4 @@ router.get(
   }
 );
 
-
-module.exports = router;
+export default router;

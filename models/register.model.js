@@ -1,17 +1,18 @@
-const mongoose = require('mongoose');
+// ===== register.model.js (ESM compatible) =====
+import mongoose from 'mongoose';
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-const register = new Schema({
+const registerSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
-  password: { type: String, required: true ,minlength: 6 },
-  followers : { type: Number,  default:0 } ,
-  followings : {type: Number,  default:0}  
-  }, {
-  timestamps: true,
+  password: { type: String, required: true, minlength: 6 },
+  followers: { type: Number, default: 0 },
+  followings: { type: Number, default: 0 }
+}, {
+  timestamps: true
 });
 
-const Register = mongoose.model('Register', register);
+const Register = mongoose.model('Register', registerSchema);
 
-module.exports = Register;
+export default Register; // ✅ Default export for ESM
