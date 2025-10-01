@@ -3,7 +3,7 @@
 - Debugged and modified backend endpoints (`users.js` and `post.js`) to pass automated tests.
 - Ensured API responses included required fields (`success`, `user`, `error`) for both successful and unsuccessful scenarios.
 - Handled dynamic scenarios such as variable status codes and missing resources.
-- 
+
 - Adjusted `users.js` to handle successful and unsuccessful profile checks, making responses compatible with test expectations.
 - Updated `post.js` endpoints to ensure correct creation, fetching, and deletion behavior.
 - Modified test assertions in `task.mjs` to focus on response properties rather than strict status codes where necessary.
