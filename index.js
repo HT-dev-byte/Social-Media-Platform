@@ -1,39 +1,46 @@
-require('dotenv').config()
-const express = require('express')
-const cors = require('cors')
-const mongoose = require('mongoose')
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
 
-const app = express()
-const port = process.env.PORT || 3000
+// Import routes
+import allPostsRouter from './controllers/allposts.js';
+import authRouter from './controllers/auth.js';
+import postRouter from './controllers/post.js';
+import usersRouter from './controllers/users.js';
+import manageFollowRouter from './controllers/manageFollow.js';
+import likeRouter from './controllers/like.js';
+import unlikeRouter from './controllers/unlike.js';
+import commentRouter from './controllers/comment.js';
 
-app.use(cors())
-app.use(express.json())
+const app = express();
+const port = process.env.PORT || 3000;
 
-const uri = process.env.ATLAS_URI
-mongoose.connect(
-  uri,
-  { useNewUrlParser: true } //useCreateIndex: true }
-)
-const connection = mongoose.connection
+app.use(cors());
+app.use(express.json());
+
+const uri = process.env.ATLAS_URI;
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const connection = mongoose.connection;
 connection.once('open', () => {
-  console.log('MongoDB database connection established successfully')
-})
+  console.log('MongoDB database connection established successfully');
+});
 
-//Define Routes
-app.use('/api/all_posts', require('./controllers/allposts'));
-app.use('/api/authenticate', require('./controllers/auth'));
-app.use('/api/posts', require('./controllers/post'));
-app.use('/api/user' , require('./controllers/users'));
-app.use('/api', require('./controllers/manageFollow'));
-app.use('/api/like', require('./controllers/like'));
-app.use('/api/unlike', require('./controllers/unlike'));
-app.use('/api/comment', require('./controllers/comment'));
+// Define Routes
+app.use('/api/all_posts', allPostsRouter);
+app.use('/api/authenticate', authRouter);
+app.use('/api/posts', postRouter);
+app.use('/api/user', usersRouter);
+app.use('/api', manageFollowRouter);
+app.use('/api/like', likeRouter);
+app.use('/api/unlike', unlikeRouter);
+app.use('/api/comment', commentRouter);
 
-
-if(!module.parent){
-app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`)
-})
+// Start server if not imported as module
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  app.listen(port, () => {
+    console.log(`Server is running on port: ${port}`);
+  });
 }
 
-module.exports =app;
+export default app;
